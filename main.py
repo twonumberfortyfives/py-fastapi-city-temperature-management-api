@@ -28,16 +28,11 @@ async def delete_city(city_id: int, db: AsyncSession = Depends(get_db)):
     return await views.delete_city(city_id=city_id, db=db)
 
 
-@app.get("/temperatures/update", response_model=list[schemas.Temperature])
+@app.post("/temperatures/update", response_model=list[schemas.Temperature])
 async def fetch_temperatures(db: AsyncSession = Depends(get_db)):
     return await views.fetch_data_temperature(db=db)
 
 
 @app.get("/temperatures", response_model=list[schemas.Temperature])
-async def get_temperatures(db: AsyncSession = Depends(get_db)):
-    return await views.get_temperatures(db=db)
-
-
-@app.get("/temperatures", response_model=list[schemas.Temperature])
-async def get_temperatures_of_city(city_id: int, db: AsyncSession = Depends(get_db)):
-    return await views.get_temperatures_of_city(city_id=city_id, db=db)
+async def get_temperatures(city_id: int = None, db: AsyncSession = Depends(get_db)):
+    return await views.get_temperatures(city_id=city_id, db=db)

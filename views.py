@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,19 +48,19 @@ async def fetch_data_temperature(db: AsyncSession):
     )
     all_cities = query.scalars().all()
 
-    for city in all_cities:
-        url = f"http://api.weatherapi.com/v1/current.json?key=caef70c7d43a4a988c5163801242210&q={city.name}"
-        response = requests.get(url)
-        weather_data = response.json()
-        new_temperature = models.DBTemperature(
-            city_id=city.id,
-            date_time=datetime.strptime(weather_data["current"]["last_updated"], "%Y-%m-%d %H:%M"),
-            temperature=weather_data["current"]["temp_c"],
-        )
+    async with httpx.AsyncClient() as client:
+        for city in all_cities:
+            url = f"http://api.weatherapi.com/v1/current.json?key=caef70c7d43a4a988c5163801242210&q={city.name}"
+            response = await client.get(url)
+            weather_data = response.json()
+            new_temperature = models.DBTemperature(
+                city_id=city.id,
+                date_time=datetime.strptime(weather_data["current"]["last_updated"], "%Y-%m-%d %H:%M"),
+                temperature=weather_data["current"]["temp_c"],
+            )
 
-        db.add(new_temperature)
+            db.add(new_temperature)
         await db.commit()
-        await db.refresh(new_temperature)
 
     query_all_temperatures = await db.execute(
         select(models.DBTemperature)
@@ -68,10 +69,16 @@ async def fetch_data_temperature(db: AsyncSession):
     return result
 
 
-async def get_temperatures(db: AsyncSession):
-    query = await db.execute(
-        select(models.DBTemperature)
-    )
+async def get_temperatures(city_id: int, db: AsyncSession):
+    if city_id:
+        query = await db.execute(
+            select(models.DBTemperature)
+            .filter(models.DBTemperature.city_id == city_id)
+        )
+    else:
+        query = await db.execute(
+            select(models.DBTemperature)
+        )
     all_temperatures = query.scalars().all()
     return all_temperatures
 
