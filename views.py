@@ -48,7 +48,7 @@ async def fetch_data_temperature(db: AsyncSession):
     all_cities = query.scalars().all()
 
     for city in all_cities:
-        url = f"http://api.weatherapi.com/v1/current.json?key=caef70c7d43a4a988c5163801242210&q={city.name}?"
+        url = f"http://api.weatherapi.com/v1/current.json?key=caef70c7d43a4a988c5163801242210&q={city.name}"
         response = requests.get(url)
         weather_data = response.json()
         new_temperature = models.DBTemperature(

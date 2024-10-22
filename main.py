@@ -38,6 +38,6 @@ async def get_temperatures(db: AsyncSession = Depends(get_db)):
     return await views.get_temperatures(db=db)
 
 
-@app.get("/temperatures/", response_model=list[schemas.Temperature])
+@app.get("/temperatures", response_model=list[schemas.Temperature])
 async def get_temperatures_of_city(city_id: int, db: AsyncSession = Depends(get_db)):
     return await views.get_temperatures_of_city(city_id=city_id, db=db)
